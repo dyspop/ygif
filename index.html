@@ -3,160 +3,144 @@
 
 <head>
   <meta charset="UTF-8" />
-  <title>Your Grandma is Funky</title>
+  <title>Your Grandma Is Funky.</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500;1,600;1,700&display=swap"
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&display=swap"
     rel="stylesheet">
   <link href="base.css" rel="stylesheet">
   <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
-  <!-- Include Alpine.js from CDN -->
-  <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-
-  <!-- Alpine store for artist selection -->
-  <script>
-    document.addEventListener("alpine:init", () => {
-      Alpine.store('artistSelection', {
-        selectedArtist1: null,
-        selectedArtist2: null,
-        setArtist(artist) {
-          if (!this.selectedArtist1 || this.selectedArtist1 === artist.name) {
-            this.selectedArtist1 = artist.name;
-          } else if (!this.selectedArtist2 || this.selectedArtist2 === artist.name) {
-            this.selectedArtist2 = artist.name;
-          } else {
-            this.selectedArtist1 = artist.name;
-            this.selectedArtist2 = null;
-          }
-        }
-      });
-    });
-  </script>
-
-  <!-- Fetch artists data from local artists.json -->
-  <script>
-    fetch('artists.json')
-      .then(response => response.json())
-      .then(data => {
-        window.artists = data;
-        console.log("Loaded artists data:", window.artists);
-      })
-      .catch(error => console.error("Error loading artists data:", error));
-  </script>
-
-  <!-- Gallery component definition in Alpine.js -->
-  <script>
-    function galleryComponent() {
-      return {
-        artists: [],
-        init() {
-          if (window.artists) {
-            this.artists = window.artists;
-          } else {
-            const interval = setInterval(() => {
-              if (window.artists) {
-                this.artists = window.artists;
-                clearInterval(interval);
-              }
-            }, 100);
-          }
-        },
-        selectArtist(artist) {
-          this.$store.artistSelection.setArtist(artist);
-        }
-      }
-    }
-  </script>
-
-  <!-- Custom CSS for the Scrollbar -->
-  <style>
-    /* Hide scrollbar track */
-    .gallery-container::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
-      background: transparent;
-      /* Hide track */
-    }
-
-    /* Custom scrollbar thumb */
-    .gallery-container::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: 4px;
-      transition: background 0.3s ease-in-out;
-    }
-
-    /* Show scrollbar only when hovering */
-    .gallery-container:hover::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.8);
-    }
-
-    /* Firefox scrollbar */
-    .gallery-container {
-      scrollbar-width: thin;
-      scrollbar-color: transparent transparent;
-    }
-
-    .gallery-container:hover {
-      scrollbar-color: rgba(255, 255, 255, 0.8) transparent;
-    }
-
-    /* Smooth scrolling */
-    .gallery-container {
-      scroll-behavior: smooth;
-    }
-  </style>
 </head>
 
 <body class="h-100dvh place-content-center">
+  <!-- ✅ Navigation -->
   <nav class="fixed top-0 text-white text-3xl px-5 py-3 border-b w-full">
     Your Grandma Is Funky.
   </nav>
 
-  <!-- GALLERY COMPONENT -->
-  <div class="px-8 pt-16">
-    <div x-data="galleryComponent()" class="gallery-container relative w-full mx-auto my-8 overflow-x-auto"
-      x-init="init()">
+  <!-- ✅ SolidJS App Mount Point -->
+  <div id="app"></div>
 
-      <div class="flex gap-8">
-        <template x-for="artist in artists" :key="artist.name">
-          <div class="bg-white p-4 border hover:bg-gray-100 cursor-pointer min-w-[240px] mb-8"
-            @click="selectArtist(artist)">
-            <img :src="artist.imageUrl" :alt="artist.name" class="w-full h-auto rounded-lg">
+  <!-- ✅ Load SolidJS from CDN -->
+  <script type="module">
+    import { createSignal, onMount } from "https://cdn.skypack.dev/solid-js";
+    import { render } from "https://cdn.skypack.dev/solid-js/web";
 
-            <h3 class="font-bold" x-text="artist.name"></h3>
-            <p class="text-sm" x-text="artist.roles.join(', ')"></p>
-          </div>
-        </template>
-      </div>
-    </div>
-  </div>
+    function App() {
+      // 🔥 SolidJS reactive signals
+      const [artists, setArtists] = createSignal([]);
+      const [selectedArtist1, setSelectedArtist1] = createSignal("");
+      const [selectedArtist2, setSelectedArtist2] = createSignal("");
 
-  <!-- The form overlay, now managed by Alpine.js -->
-  <div class="form-container m-8 max-w-[460px] place-self-center bg-white p-8" x-data="{ artists: [] }"
-    x-init="artists = window.artists; console.log('Artists loaded:', artists)">
-    <form class="flex flex-col gap-4">
-      <h2 class="text-2xl text-black-500">The Connections: Life Is Music.</h2>
-      <p>Choose two artists to see how their stories intertwined.</p>
-      <label for="name1" class="hidden">Artist 1:</label>
-      <select id="name1" name="name1" x-model="$store.artistSelection.selectedArtist1" class="border p-3 pe-12">
-        <template x-for="artist in artists" :key="artist.name">
-          <option x-text="artist.name" :value="artist.name"></option>
-        </template>
-      </select>
-      <label for="name2" class="hidden">Artist 2:</label>
-      <select id="name2" name="name2" x-model="$store.artistSelection.selectedArtist2" class="border p-3">
-        <template x-for="artist in artists" :key="artist.name">
-          <option x-text="artist.name" :value="artist.name"></option>
-        </template>
-      </select>
-      <button type="submit" class="bg-black text-white text-xl font-bold p-3">Submit</button>
-    </form>
-  </div>
+      // 🎵 Fetch artist data on mount
+      onMount(async () => {
+        try {
+          const response = await fetch("artists.json");
+          const data = await response.json();
+          console.log("Loaded artists data:", data);
+          setArtists(data);
+        } catch (error) {
+          console.error("Error loading artists data:", error);
+        }
+      });
 
-  <!-- Include Three.js from a CDN -->
+      // ✅ Create form container
+      const container = document.createElement("div");
+      container.className = "form-container m-8 max-w-[460px] place-self-center bg-white p-8";
+
+      const title = document.createElement("h2");
+      title.className = "text-2xl text-black-500";
+      title.textContent = "The Connections: Life Is Music.";
+      container.appendChild(title);
+
+      const description = document.createElement("p");
+      description.textContent = "Choose two artists to see how their stories intertwined.";
+      container.appendChild(description);
+
+      // ✅ Create form element
+      const form = document.createElement("form");
+      form.className = "flex flex-col gap-4";
+
+      // 🔽 Create dropdowns
+      const name1Label = document.createElement("label");
+      name1Label.textContent = "Artist 1:";
+      form.appendChild(name1Label);
+
+      const name1Select = document.createElement("select");
+      name1Select.id = "name1";
+      name1Select.name = "name1";
+      name1Select.addEventListener("change", (e) => setSelectedArtist1(e.target.value));
+      form.appendChild(name1Select);
+
+      const name2Label = document.createElement("label");
+      name2Label.textContent = "Artist 2:";
+      form.appendChild(name2Label);
+
+      const name2Select = document.createElement("select");
+      name2Select.id = "name2";
+      name2Select.name = "name2";
+      name2Select.addEventListener("change", (e) => setSelectedArtist2(e.target.value));
+      form.appendChild(name2Select);
+
+      // ✅ Submit button
+      const submitButton = document.createElement("button");
+      submitButton.type = "submit";
+      submitButton.className = "bg-black text-white text-xl font-bold p-3";
+      submitButton.textContent = "Submit";
+      form.appendChild(submitButton);
+
+      container.appendChild(form);
+
+      // 🔄 Function to update dropdowns when artists are loaded
+      onMount(() => {
+        name1Select.innerHTML = '<option value="">Select an artist</option>';
+        name2Select.innerHTML = '<option value="">Select an artist</option>';
+
+        artists().forEach(artist => {
+          const option1 = document.createElement("option");
+          option1.value = artist.name;
+          option1.textContent = artist.name;
+          name1Select.appendChild(option1);
+
+          const option2 = document.createElement("option");
+          option2.value = artist.name;
+          option2.textContent = artist.name;
+          name2Select.appendChild(option2);
+        });
+      });
+
+      // ✅ Selected artists display
+      const selectedArtistsDisplay = document.createElement("div");
+      selectedArtistsDisplay.className = "mt-4";
+
+      const artist1Text = document.createElement("p");
+      artist1Text.innerHTML = `<strong>Artist 1:</strong> <span id="artist1Name"></span>`;
+      selectedArtistsDisplay.appendChild(artist1Text);
+
+      const artist2Text = document.createElement("p");
+      artist2Text.innerHTML = `<strong>Artist 2:</strong> <span id="artist2Name"></span>`;
+      selectedArtistsDisplay.appendChild(artist2Text);
+
+      container.appendChild(selectedArtistsDisplay);
+
+      // 🔄 Update selected artist display when changed
+      onMount(() => {
+        setInterval(() => {
+          document.getElementById("artist1Name").textContent = selectedArtist1();
+          document.getElementById("artist2Name").textContent = selectedArtist2();
+        }, 100);
+      });
+
+      return container;
+    }
+
+    // 🚀 Render SolidJS app into the page
+    render(App, document.getElementById("app"));
+  </script>
+
+  <!-- ✅ Include Three.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="waves.js" type="text/javascript"></script>
+  <script src="waves.js"></script>
 </body>
 
 </html>
